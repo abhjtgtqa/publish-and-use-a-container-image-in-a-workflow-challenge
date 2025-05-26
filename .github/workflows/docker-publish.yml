@@ -6,25 +6,21 @@ name: Docker
 # documentation.
 
 on:
-  schedule:
-    - cron: '24 16 * * *'
   push:
     branches: [ "main" ]
     # Publish semver tags as releases.
     tags: [ 'v*.*.*' ]
   pull_request:
     branches: [ "main" ]
+  workflow_dispatch:
 
 env:
   # Use docker.io for Docker Hub if empty
   REGISTRY: ghcr.io
   # github.repository as <account>/<repo>
   IMAGE_NAME: ${{ github.repository }}
-
-
 jobs:
   build:
-
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -96,3 +92,8 @@ jobs:
         # This step uses the identity token to provision an ephemeral certificate
         # against the sigstore community Fulcio instance.
         run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run image
+        run: docker run ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main 
